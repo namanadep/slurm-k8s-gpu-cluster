@@ -4,33 +4,6 @@ A Kubernetes-orchestrated Slurm HPC cluster with GPU compute, running a real PyT
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                 Kubernetes cluster (minikube)                 │
-│                                                              │
-│  Namespace: hpc                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │           slurm-controller  Deployment                 │  │
-│  │  image: giovtorres/docker-centos7-slurm:latest         │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌────────┐               │  │
-│  │  │slurmctld │  │slurmdbd  │  │ mysqld │               │  │
-│  │  │ :6817    │  │  :6819   │  │  :3306 │               │  │
-│  │  └──────────┘  └──────────┘  └────────┘               │  │
-│  │  ConfigMap: gres.conf                                  │  │
-│  └────────────────────────────────────────────────────────┘  │
-│  ClusterIP: 10.244.0.x  NodePort: 30617 → 6817              │
-└──────────────────────────────────────────────────────────────┘
-                             │ iptables DNAT
-            ┌────────────────▼────────────────────┐
-            │    gpu-node-0  Docker container      │
-            │    --gpus all  --network minikube    │
-            │    image: slurm-gpu-compute:latest   │
-            │    slurmd  ·  CUDA 12.1              │
-            │    PyTorch 2.1.2+cu121               │
-            │    NVIDIA GeForce RTX 3070  8 GB     │
-            └─────────────────────────────────────┘
-```
-
 **Slurm control plane** (slurmctld + slurmdbd + MySQL) runs as a Kubernetes Deployment inside the `hpc` namespace. Configuration is managed as a ConfigMap; munge auth key distribution happens by extracting it from the running controller pod and injecting it into the compute container — mirroring real HPC key management.
 
 **GPU compute node** runs as a Docker container with `--gpus all` on the same bridge network as minikube. Network connectivity uses an iptables DNAT rule inside the minikube container to redirect traffic on port 6817 to the Slurm controller's pod ClusterIP. In production this would be a Kubernetes pod requesting `nvidia.com/gpu: 1` via the NVIDIA device plugin — the manifest is included in `k8s/05-gpu-compute-node.yaml`. In WSL2 development, Kubernetes pods cannot access the GPU through NVML (requires bare-metal driver access); the Docker path works via the WSL2 `/dev/dxg` interface.
@@ -145,7 +118,7 @@ Job 2 (resnet18-ddp-demo) dispatched to gpu-node-0 via Slurm.
 
 ![squeue showing resnet18-ddp job R Running on gpu-node-0](screenshots/25_squeue_running.png)
 
-## GPU training proof
+## GPU Training
 
 ### `nvidia-smi` on the compute node
 
