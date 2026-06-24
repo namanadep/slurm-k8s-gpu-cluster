@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slurm-controller
+  namespace: hpc
+  labels:
+    app: slurm-controller
+spec:
+  replicas: 1
+  strategy:
+    # hostNetwork pods can't do rolling updates — only one can own the host ports at a time
+    type: Recreate
+  selector:
+    matchLabels:
+      app: slurm-controller
+  template:
+    metadata:
+      labels:
+        app: slurm-controller
+    spec:
+      # hostname: slurmctl sets the pod's actual hostname, matching the
+      # SlurmctldHost=slurmctl in the image's slurm.conf.
+      # Without hostNetwork the pod gets its own network namespace where
+      # this hostname setting takes effect.
+      hostname: slurmctl
+
+      containers:
+        - name: slurm-controller
+          image: giovtorres/docker-centos7-slurm:latest
+          imagePullPolicy: Never
+          # The entrypoint script does `exec "$@"` after starting supervisord.
+          # Overriding CMD to keep the container alive (supervisord runs daemonized).
+          args: ["tail", "-f", "/dev/null"]
+          ports:
+            - name: slurmctld
+              containerPort: 6817
+            - name: slurmdbd
+              containerPort: 6819
+          volumeMounts:
+            - name: slurm-config
+              mountPath: /etc/slurm/gres.conf
+              subPath: gres.conf
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+
+      volumes:
+        - name: slurm-config
+          configMap:
+            name: slurm-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slurm-controller
+  namespace: hpc
+spec:
+  selector:
+    app: slurm-controller
+  type: NodePort
+  ports:
+    - name: slurmctld
+      port: 6817
+      targetPort: 6817
+      nodePort: 30617
+    - name: slurmdbd
+      port: 6819
+      targetPort: 6819
+      nodePort: 30619

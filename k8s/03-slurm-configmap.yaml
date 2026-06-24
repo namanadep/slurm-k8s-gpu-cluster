@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slurm-config
+  namespace: hpc
+data:
+  slurm.conf: |
+    # Slurm configuration for k8s-hpc cluster
+    ClusterName=k8s-hpc
+    # With hostNetwork: true the pod inherits the K8s node hostname ("minikube")
+    SlurmctldHost=minikube
+
+    # Authentication
+    AuthType=auth/munge
+    MpiDefault=none
+
+    # Scheduler
+    SchedulerType=sched/backfill
+    SelectType=select/cons_tres
+    SelectTypeParameters=CR_Core_Memory
+
+    # GPU resource tracking
+    GresTypes=gpu
+    AccountingStorageType=accounting_storage/slurmdbd
+    AccountingStorageHost=localhost
+    AccountingStorageUser=slurm
+    AccountingStoragePass=password
+    JobAcctGatherType=jobacct_gather/linux
+
+    # Logging
+    SlurmctldLogFile=/var/log/slurmctld.log
+    SlurmdLogFile=/var/log/slurmd.log
+
+    # Ports
+    SlurmctldPort=6817
+    SlurmdPort=6818
+
+    # Timeouts
+    SlurmctldTimeout=300
+    SlurmdTimeout=300
+    InactiveLimit=0
+    MinJobAge=300
+    KillWait=30
+    Waittime=0
+
+    # Prolog/epilog
+    ReturnToService=2
+
+    # GPU compute node — Docker container with --gpus all on minikube network
+    # NodeAddr is the container IP on the minikube bridge (192.168.49.0/24)
+    NodeName=gpu-node-0 NodeAddr=192.168.49.10 CPUs=12 RealMemory=8192 \
+      Gres=gpu:rtx3070:1 State=UNKNOWN
+
+    PartitionName=gpu Nodes=gpu-node-0 Default=YES MaxTime=INFINITE State=UP
+
+  gres.conf: |
+    # GPU resource configuration for gpu-node-0
+    # Matches the GPU available via NVIDIA runtime in the compute container
+    NodeName=gpu-node-0 Name=gpu Type=rtx3070 File=/dev/nvidia0

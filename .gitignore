@@ -1,0 +1,5 @@
+.munge.key.tmp
+*.key.tmp
+__pycache__/
+*.pyc
+/tmp/cifar10/

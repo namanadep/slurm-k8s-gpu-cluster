@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpu-compute-node
+  namespace: hpc
+  labels:
+    app: gpu-compute-node
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gpu-compute-node
+  template:
+    metadata:
+      labels:
+        app: gpu-compute-node
+    spec:
+      hostname: gpu-node-0
+      # Tolerate the GPU taint so this pod lands on GPU nodes
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+
+      initContainers:
+        - name: munge-init
+          image: slurm-gpu-compute:latest
+          command:
+            - bash
+            - -c
+            - |
+              cp /munge-secret/munge.key /munge-out/munge.key
+              chmod 400 /munge-out/munge.key
+              chown munge:munge /munge-out/munge.key
+          volumeMounts:
+            - name: munge-secret
+              mountPath: /munge-secret
+            - name: munge-key-out
+              mountPath: /munge-out
+
+      containers:
+        - name: gpu-compute-node
+          image: slurm-gpu-compute:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SLURM_NODENAME
+              value: "gpu-node-0"
+          resources:
+            limits:
+              # Request the GPU via the NVIDIA device plugin.
+              # On bare-metal K8s this surfaces as /dev/nvidia0 inside the pod.
+              nvidia.com/gpu: "1"
+            requests:
+              cpu: "4"
+              memory: "4Gi"
+          volumeMounts:
+            - name: slurm-config
+              mountPath: /etc/slurm/slurm.conf
+              subPath: slurm.conf
+            - name: slurm-config
+              mountPath: /etc/slurm/gres.conf
+              subPath: gres.conf
+            - name: munge-key-out
+              mountPath: /etc/munge
+            - name: job-output
+              mountPath: /jobs
+
+      volumes:
+        - name: munge-secret
+          secret:
+            secretName: munge-key
+        - name: munge-key-out
+          emptyDir: {}
+        - name: slurm-config
+          configMap:
+            name: slurm-config
+        - name: job-output
+          emptyDir: {}

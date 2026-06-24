@@ -1,0 +1,39 @@
+# NVIDIA GPU Device Plugin for Kubernetes
+# Exposes host GPUs as schedulable resources (nvidia.com/gpu)
+# Prerequisites: NVIDIA drivers + Container Toolkit on each GPU node
+# Ref: https://github.com/NVIDIA/k8s-device-plugin
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-device-plugin
+  namespace: kube-system
+  labels:
+    app: nvidia-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app: nvidia-device-plugin
+  template:
+    metadata:
+      labels:
+        app: nvidia-device-plugin
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      priorityClassName: system-node-critical
+      containers:
+        - name: nvidia-device-plugin
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.18.2
+          args:
+            - "--fail-on-init-error=false"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
