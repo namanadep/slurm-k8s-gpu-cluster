@@ -46,7 +46,7 @@ data:
     # Prolog/epilog
     ReturnToService=2
 
-    # GPU compute node — Docker container with --gpus all on minikube network
+    # GPU compute node - Docker container with --gpus all on minikube network
     # NodeAddr is the container IP on the minikube bridge (192.168.49.0/24)
     NodeName=gpu-node-0 NodeAddr=192.168.49.10 CPUs=12 RealMemory=8192 \
       Gres=gpu:rtx3070:1 State=UNKNOWN

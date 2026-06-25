@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ResNet-18 DDP demo — synthetic CIFAR-10-shaped data (3×32×32, 10 classes).
+ResNet-18 DDP demo - synthetic CIFAR-10-shaped data (3×32×32, 10 classes).
 
 Identical DDP machinery as train_cifar10.py; synthetic tensors avoid the
 dataset download so the benchmark runs immediately. GPU throughput and

@@ -4,9 +4,9 @@ A Kubernetes-orchestrated Slurm HPC cluster with GPU compute, running a real PyT
 
 ## Architecture
 
-**Slurm control plane** (slurmctld + slurmdbd + MySQL) runs as a Kubernetes Deployment inside the `hpc` namespace. Configuration is managed as a ConfigMap; munge auth key distribution happens by extracting it from the running controller pod and injecting it into the compute container — mirroring real HPC key management.
+**Slurm control plane** (slurmctld + slurmdbd + MySQL) runs as a Kubernetes Deployment inside the `hpc` namespace. Configuration is managed as a ConfigMap; munge auth key distribution happens by extracting it from the running controller pod and injecting it into the compute container - mirroring real HPC key management.
 
-**GPU compute node** runs as a Docker container with `--gpus all` on the same bridge network as minikube. Network connectivity uses an iptables DNAT rule inside the minikube container to redirect traffic on port 6817 to the Slurm controller's pod ClusterIP. In production this would be a Kubernetes pod requesting `nvidia.com/gpu: 1` via the NVIDIA device plugin — the manifest is included in `k8s/05-gpu-compute-node.yaml`. In WSL2 development, Kubernetes pods cannot access the GPU through NVML (requires bare-metal driver access); the Docker path works via the WSL2 `/dev/dxg` interface.
+**GPU compute node** runs as a Docker container with `--gpus all` on the same bridge network as minikube. Network connectivity uses an iptables DNAT rule inside the minikube container to redirect traffic on port 6817 to the Slurm controller's pod ClusterIP. In production this would be a Kubernetes pod requesting `nvidia.com/gpu: 1` via the NVIDIA device plugin - the manifest is included in `k8s/05-gpu-compute-node.yaml`. In WSL2 development, Kubernetes pods cannot access the GPU through NVML (requires bare-metal driver access); the Docker path works via the WSL2 `/dev/dxg` interface.
 
 ## Repository structure
 
@@ -92,13 +92,13 @@ The minikube single-node Kubernetes cluster. In production, each physical HPC no
 
 ![kubectl get nodes showing minikube Ready](screenshots/21_kubectl_get_nodes.png)
 
-### `kubectl get pods -n hpc` — Slurm control plane in K8s
+### `kubectl get pods -n hpc` - Slurm control plane in K8s
 
 The slurm-controller pod (slurmctld + slurmdbd + MySQL) Running in the `hpc` namespace.
 
 ![kubectl get pods -n hpc showing slurm-controller Running](screenshots/22_kubectl_get_pods.png)
 
-### `kubectl get svc -n hpc` — NodePort services
+### `kubectl get svc -n hpc` - NodePort services
 
 Port 30617 exposes slurmctld outside the cluster; an iptables DNAT rule bridges it to the GPU compute container.
 
@@ -106,13 +106,13 @@ Port 30617 exposes slurmctld outside the cluster; an iptables DNAT rule bridges 
 
 ## Slurm on Kubernetes
 
-### `sinfo` — cluster topology from inside the K8s pod
+### `sinfo` - cluster topology from inside the K8s pod
 
 The scheduler sees the `gpu` partition with gpu-node-0 (RTX 3070) available.
 
 ![sinfo showing gpu partition with gpu-node-0 idle](screenshots/24_sinfo_with_gpu_idle.png)
 
-### `squeue` — job running on the GPU node
+### `squeue` - job running on the GPU node
 
 Job 2 (resnet18-ddp-demo) dispatched to gpu-node-0 via Slurm.
 
@@ -126,7 +126,7 @@ RTX 3070 8 GB visible to the Docker container via `--gpus all`.
 
 ![nvidia-smi showing RTX 3070 with GPU utilization](screenshots/26_nvidia_smi_full.png)
 
-### Training output — 5 epochs, ResNet-18, RTX 3070
+### Training output - 5 epochs, ResNet-18, RTX 3070
 
 PyTorch DDP (Distributed Data Parallel) training: WORLD_SIZE=1 for this single-GPU demo. The same code runs unchanged on a multi-GPU cluster via `torchrun --nnodes=N`.
 
@@ -140,11 +140,11 @@ PyTorch DDP (Distributed Data Parallel) training: WORLD_SIZE=1 for this single-G
      5      2.2495      16.64%     2.3421    10.50%    6.8s       7337 img/s
 ```
 
-*Accuracy stays near 10% because `train_synthetic.py` uses random labels — the point is GPU throughput and DDP infrastructure, not accuracy. Use `train_cifar10.sh` for a real convergence run.*
+*Accuracy stays near 10% because `train_synthetic.py` uses random labels - the point is GPU throughput and DDP infrastructure, not accuracy. Use `train_cifar10.sh` for a real convergence run.*
 
-![Training complete — 5 epochs, ~7500 img/s on RTX 3070](screenshots/27_training_complete.png)
+![Training complete - 5 epochs, ~7500 img/s on RTX 3070](screenshots/27_training_complete.png)
 
-### `sacct` — job accounting
+### `sacct` - job accounting
 
 Slurm records completed job metadata in the accounting database.
 
@@ -161,7 +161,7 @@ Slurm records completed job metadata in the accounting database.
 | `05-gpu-compute-node.yaml` | `nvidia.com/gpu` resource requests, GPU tolerations (production) |
 | `06-nvidia-device-plugin.yaml` | DaemonSet exposing host GPUs as schedulable K8s resources |
 
-## PyTorch DDP — how it scales
+## PyTorch DDP - how it scales
 
 `scripts/train_cifar10.py` uses production-grade distributed training primitives:
 

@@ -8,7 +8,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    # hostNetwork pods can't do rolling updates — only one can own the host ports at a time
+    # hostNetwork pods can't do rolling updates - only one can own the host ports at a time
     type: Recreate
   selector:
     matchLabels:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ResNet-18 on CIFAR-10 — PyTorch Distributed Data Parallel (DDP) training.
+ResNet-18 on CIFAR-10 - PyTorch Distributed Data Parallel (DDP) training.
 
 Designed to scale across N nodes × G GPUs each.
 Launch with torchrun (set by the Slurm job script):
@@ -14,9 +14,9 @@ Launch with torchrun (set by the Slurm job script):
     train_cifar10.py
 
 Environment variables set by torchrun:
-  LOCAL_RANK  — GPU index on this node
-  RANK        — global process rank across all nodes
-  WORLD_SIZE  — total number of processes (nodes × GPUs-per-node)
+  LOCAL_RANK  - GPU index on this node
+  RANK        - global process rank across all nodes
+  WORLD_SIZE  - total number of processes (nodes × GPUs-per-node)
 """
 
 import os
@@ -59,7 +59,7 @@ LR       = 0.05 * WORLD_SIZE   # linear LR scaling rule for DDP
 WORKERS  = 4
 DATA_DIR = "/tmp/cifar10"
 
-# ── Data — DistributedSampler ensures each rank sees different shards ─────────
+# ── Data - DistributedSampler ensures each rank sees different shards ─────────
 train_tf = T.Compose([
     T.RandomCrop(32, padding=4),
     T.RandomHorizontalFlip(),
@@ -85,7 +85,7 @@ train_dl = DataLoader(train_ds, batch_size=BATCH, sampler=train_sampler,
 val_dl   = DataLoader(val_ds,   batch_size=BATCH, sampler=val_sampler,
                       num_workers=WORKERS, pin_memory=True)
 
-# ── Model — wrapped in DDP after moving to the local GPU ──────────────────────
+# ── Model - wrapped in DDP after moving to the local GPU ──────────────────────
 model = torchvision.models.resnet18(weights=None)
 model.fc = nn.Linear(512, 10)
 model = model.to(device)

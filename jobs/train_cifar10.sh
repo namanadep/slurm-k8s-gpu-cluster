@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# Slurm job: ResNet-18 CIFAR-10 — PyTorch DDP
+# Slurm job: ResNet-18 CIFAR-10 - PyTorch DDP
 #
 # Single-GPU demo (this cluster):
 #   sbatch train_cifar10.sh

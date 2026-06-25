@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# capture_k8s.sh — screenshot wrapper for Kubernetes + Slurm commands
+# capture_k8s.sh - screenshot wrapper for Kubernetes + Slurm commands
 # Usage: ./scripts/capture_k8s.sh <output_name> <command...>
 #
 # Runs the command on the local shell (kubectl, docker, etc.),
